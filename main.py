@@ -46,6 +46,10 @@ class AbstractCar:
         horizontal_vel = math.sin(radians) * self.vel
         self.x -= horizontal_vel
         self.y -= vertical_vel
+    
+    def reduce_speed(self):
+        self.vel = max(self.vel - self.acceleration/2, 0) # So that vel doesn't get negative and car move backwards
+        self.move()
         
 
 class PlayerCar(AbstractCar):
@@ -77,6 +81,7 @@ while run:
             break
     
     keys = pygame.key.get_pressed()
+    moved = False
     
     # Check if any of control key is pressed to rotate the car
     if keys[pygame.K_a]:
@@ -84,4 +89,8 @@ while run:
     if keys[pygame.K_d]:
         player_car.rotate(right=True)
     if keys[pygame.K_w]:
+        moved = True
         player_car.move_forward()
+
+    if not moved:
+        player_car.reduce_speed()
