@@ -25,6 +25,7 @@ class AbstractCar:
         self.angle = 0
         self.img = self.IMG
         self.x, self.y = self.START_POS
+        self.acceleration = 0.1
     
     def rotate(self, left=False, right=False):
         if(left):
@@ -34,6 +35,18 @@ class AbstractCar:
     
     def draw(self, WINDOW):
         rotate_image(WINDOW, self.img, (self.x, self.y), self.angle)
+        
+    def move_forward(self):
+        self.vel = min(self.vel + self.acceleration, self.max_vel)
+        self.move()
+    
+    def move(self):
+        radians = math.radians(self.angle)
+        vertical_vel = math.cos(radians) * self.vel
+        horizontal_vel = math.sin(radians) * self.vel
+        self.x -= horizontal_vel
+        self.y -= vertical_vel
+        
 
 class PlayerCar(AbstractCar):
     IMG = RED_CAR
@@ -70,3 +83,5 @@ while run:
         player_car.rotate(left=True)
     if keys[pygame.K_d]:
         player_car.rotate(right=True)
+    if keys[pygame.K_w]:
+        player_car.move_forward()
