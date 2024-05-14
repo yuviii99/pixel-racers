@@ -22,7 +22,7 @@ class AbstractCar:
         self.max_vel = max_vel
         self.vel = 0
         self.rotation_vel = rotation_vel
-        self.angle = 90
+        self.angle = 0
         self.img = self.IMG
         self.x, self.y = self.START_POS
     
@@ -55,7 +55,6 @@ while run:
     clock.tick(FPS)
     
     draw(WINDOW, images, player_car)
-    WINDOW.blit(FINISH, (0, 0))
     
     pygame.display.update()
     
@@ -63,3 +62,11 @@ while run:
         if event.type == pygame.QUIT:
             run = False
             break
+    
+    keys = pygame.key.get_pressed()
+    
+    # Check if any of control key is pressed to rotate the car
+    if keys[pygame.K_a]:
+        player_car.rotate(left=True)
+    if keys[pygame.K_d]:
+        player_car.rotate(right=True)
