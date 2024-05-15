@@ -10,6 +10,7 @@ TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
 
 FINISH = pygame.image.load("assets/finish.png")
 FINISH_POSITION = (130, 250)
+FINISH_LINE_MASK = pygame.mask.from_surface(FINISH)
 
 RED_CAR = scale_image(pygame.image.load("assets/red-car.png"), 0.5)
 GREEN_CAR = scale_image(pygame.image.load("assets/green-car.png"), 0.5)
@@ -116,5 +117,16 @@ while run:
             break
     
     move_player(player_car)
+    
     if player_car.collide(TRACK_BORDER_MASK) != None:
         player_car.bounce()
+    
+    finish_line_intersection_point = player_car.collide(FINISH_LINE_MASK, *FINISH_POSITION)
+    
+    if finish_line_intersection_point != None:
+        if finish_line_intersection_point[1] == 0:
+            player_car.bounce()
+        else:
+            # TODO
+            print("Finish")
+        
