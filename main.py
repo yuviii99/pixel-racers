@@ -79,12 +79,34 @@ class PlayerCar(AbstractCar):
     def bounce(self):
         self.vel = -self.vel
         self.move()
+        
+class ComputerCar(AbstractCar):
+    IMG = GREEN_CAR
+    START_POS = (150, 200)
+    
+    def __init__(self, max_vel, rotation_vel, path=[]):
+        super().__init__(max_vel, rotation_vel)
+        self.path=path
+        self.current_point = 0
+        self.vel = max_vel
+        
+    def draw_points(self, WINDOW):
+        for point in self.path:
+            pygame.draw.circle(WINDOW, (255,0,0), point, 5)
+    
+    def draw(self, WINDOW):
+        super().draw(WINDOW)
+        self.draw_points(WINDOW)
+        
+        
 
-def draw(WINDOW, images, player_car):
+def draw(WINDOW, images, player_car, computer_car):
     for img, pos in images:
         WINDOW.blit(img, pos)
 
     player_car.draw(WINDOW)
+    computer_car.draw(WINDOW)
+    
     pygame.display.update()
 
 def move_player(player_car):
@@ -108,12 +130,14 @@ def move_player(player_car):
 run = True
 clock = pygame.time.Clock()
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0, 0))]
+
 player_car = PlayerCar(4, 4)
+computer_car = ComputerCar(4, 4)
 
 while run:
     clock.tick(FPS)
     
-    draw(WINDOW, images, player_car)
+    draw(WINDOW, images, player_car, computer_car)
     
     pygame.display.update()
     
