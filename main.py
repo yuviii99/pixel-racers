@@ -39,6 +39,10 @@ class AbstractCar:
     def move_forward(self):
         self.vel = min(self.vel + self.acceleration, self.max_vel)
         self.move()
+        
+    def move_backward(self):
+        self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
+        self.move()
     
     def move(self):
         radians = math.radians(self.angle)
@@ -46,15 +50,15 @@ class AbstractCar:
         horizontal_vel = math.sin(radians) * self.vel
         self.x -= horizontal_vel
         self.y -= vertical_vel
-    
-    def reduce_speed(self):
-        self.vel = max(self.vel - self.acceleration/2, 0) # So that vel doesn't get negative and car move backwards
-        self.move()
         
 
 class PlayerCar(AbstractCar):
     IMG = RED_CAR
     START_POS = (180, 200)
+    
+    def reduce_speed(self):
+        self.vel = max(self.vel - self.acceleration/2, 0) # So that vel doesn't get negative and car move backwards
+        self.move()
 
 def draw(WINDOW, images, player_car):
     for img, pos in images:
@@ -62,6 +66,24 @@ def draw(WINDOW, images, player_car):
 
     player_car.draw(WINDOW)
     pygame.display.update()
+
+def move_player(player_car):
+    keys = pygame.key.get_pressed()
+    moved = False
+    
+    # Check if any of control key is pressed to rotate the car
+    if keys[pygame.K_a]:
+        player_car.rotate(left=True)
+    if keys[pygame.K_d]:
+        player_car.rotate(right=True)
+    if keys[pygame.K_w]:
+        moved = True
+        player_car.move_forward()
+    if keys[pygame.K_s]:
+        moved = True
+        player_car.move_backward()
+    if not moved:
+        player_car.reduce_speed()
 
 run = True
 clock = pygame.time.Clock()
@@ -80,17 +102,4 @@ while run:
             run = False
             break
     
-    keys = pygame.key.get_pressed()
-    moved = False
-    
-    # Check if any of control key is pressed to rotate the car
-    if keys[pygame.K_a]:
-        player_car.rotate(left=True)
-    if keys[pygame.K_d]:
-        player_car.rotate(right=True)
-    if keys[pygame.K_w]:
-        moved = True
-        player_car.move_forward()
-
-    if not moved:
-        player_car.reduce_speed()
+    move_player(player_car)
