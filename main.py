@@ -19,6 +19,8 @@ WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pixel Racers")
 
+COMPUTER_PATH = [(175, 119), (110, 70), (56, 133), (70, 481), (318, 731), (404, 680), (418, 521), (507, 475), (600, 551), (613, 715), (736, 713),
+        (734, 399), (611, 357), (409, 343), (433, 257), (697, 258), (738, 123), (581, 71), (303, 78), (275, 377), (176, 388), (178, 260)]
 FPS = 60
 
 class AbstractCar:
@@ -96,7 +98,45 @@ class ComputerCar(AbstractCar):
     
     def draw(self, WINDOW):
         super().draw(WINDOW)
-        self.draw_points(WINDOW)
+        #self.draw_points(WINDOW)
+        
+    def calculate_angle(self):
+        traget_x, target_y = self.path[self.current_point]
+        
+        x_diff = traget_x - self.x
+        y_diff = target_y - self.y
+        
+        if y_diff == 0:
+            desired_radian_angle = math.pi/2
+        else:
+            desired_radian_angle = math.atan(x_diff/y_diff)
+            
+        if target_y > self.y:
+            desired_radian_angle += math.pi
+        
+        difference_angle = self.angle - math.degrees(desired_radian_angle)
+        
+        if difference_angle >= 180:
+            difference_angle -= 360 # Take shortcut in turn
+        
+        if difference_angle > 0:
+            self.angle -= min(self.rotation_vel, abs(difference_angle))
+        else:
+            self.angle += min(self.rotation_vel, abs(difference_angle))
+    
+    def update_path_point(self):
+        target = self.path[self.current_point]
+        rect = pygame.Rect(self.x, self.y, self.img.get_width(), self.img.get_height())
+        if rect.collidepoint(*target):
+            self.current_point += 1
+    
+    def move(self):
+        if(self.current_point >= len(self.path)):
+            return
+        
+        self.calculate_angle()
+        self.update_path_point()
+        super().move()
         
         
 
@@ -132,7 +172,7 @@ clock = pygame.time.Clock()
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0, 0))]
 
 player_car = PlayerCar(4, 4)
-computer_car = ComputerCar(4, 4)
+computer_car = ComputerCar(1, 4, COMPUTER_PATH)
 
 while run:
     clock.tick(FPS)
@@ -147,6 +187,7 @@ while run:
             break
     
     move_player(player_car)
+    computer_car.move()
     
     if player_car.collide(TRACK_BORDER_MASK) != None:
         player_car.bounce()
@@ -160,4 +201,6 @@ while run:
             # TODO
             player_car.reset()
             print("Finish")
+
+pygame.quit()
         
