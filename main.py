@@ -60,6 +60,12 @@ class AbstractCar:
         offset = (int(self.x - x), int(self.y - y))
         intersection_point = mask.overlap(car_mask, offset)
         return intersection_point
+    
+    # Spawn at start line again once finished
+    def reset(self):
+        self.x, self.y = self.START_POS
+        self.angle = 0
+        self.vel = 0
         
 
 class PlayerCar(AbstractCar):
@@ -128,5 +134,6 @@ while run:
             player_car.bounce()
         else:
             # TODO
+            player_car.reset()
             print("Finish")
         
