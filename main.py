@@ -192,14 +192,20 @@ while run:
     if player_car.collide(TRACK_BORDER_MASK) != None:
         player_car.bounce()
     
-    finish_line_intersection_point = player_car.collide(FINISH_LINE_MASK, *FINISH_POSITION)
+    player_finish_line_intersection_point = player_car.collide(FINISH_LINE_MASK, *FINISH_POSITION)
+    computer_finish_line_intersection_point = computer_car.collide(FINISH_LINE_MASK, *FINISH_POSITION)
     
-    if finish_line_intersection_point != None:
-        if finish_line_intersection_point[1] == 0:
+    if computer_finish_line_intersection_point != None:
+        print("Computer Wins!")
+        player_car.reset()
+        computer_car.reset()
+    
+    if player_finish_line_intersection_point != None:
+        if player_finish_line_intersection_point[1] == 0:
             player_car.bounce()
         else:
-            # TODO
             player_car.reset()
+            computer_car.reset()
             print("Finish")
 
 pygame.quit()
