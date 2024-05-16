@@ -1,7 +1,9 @@
 import pygame
 import time
 import math
-from utils import scale_image, rotate_image
+from utils import scale_image, rotate_image, text_center
+
+pygame.font.init()
 
 GRASS = scale_image(pygame.image.load("assets/grass.jpg"), 2.5)
 TRACK = scale_image(pygame.image.load("assets/track.png"), 0.9)
@@ -18,6 +20,8 @@ GREEN_CAR = scale_image(pygame.image.load("assets/green-car.png"), 0.5)
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pixel Racers")
+
+MAIN_FONT = pygame.font.SysFont("comicsans", 44)
 
 COMPUTER_PATH = [(175, 119), (110, 70), (56, 133), (70, 481), (318, 731), (404, 680), (418, 521), (507, 475), (600, 551), (613, 715), (736, 713),
         (734, 399), (611, 357), (409, 343), (433, 257), (697, 258), (738, 123), (581, 71), (303, 78), (275, 377), (176, 388), (178, 260)]
@@ -50,7 +54,7 @@ class GameInfo:
     def get_level_time(self):
         if not self.started:
             return 0
-        return self.level_start_time - time.time()
+        return round(time.time() - self.level_start_time, 0)
         
 
 class AbstractCar:
@@ -168,12 +172,27 @@ class ComputerCar(AbstractCar):
         self.update_path_point()
         super().move()
         
+    def next_level(self, level):
+        self.reset()
+        self.vel = self.max_vel + (level - 1) * 0.2
+        self.current_point = 0
+        
+        
         
 
-def draw(WINDOW, images, player_car, computer_car):
+def draw(WINDOW, images, player_car, computer_car, game_info):
     for img, pos in images:
         WINDOW.blit(img, pos)
 
+    level_text = MAIN_FONT.render(f"Level: {game_info.level}", 1, (255, 255, 255))
+    WINDOW.blit(level_text, (10, HEIGHT - level_text.get_height() - 70))
+    
+    time_text = MAIN_FONT.render(f"Time: {game_info.get_level_time()}s", 1, (255, 255, 255))
+    WINDOW.blit(time_text, (10, HEIGHT - time_text.get_height() - 40))
+    
+    vel_text = MAIN_FONT.render(f"Vel: {round(player_car.vel, 1)} px/s", 1, (255, 255, 255))
+    WINDOW.blit(vel_text, (10, HEIGHT - time_text.get_height() - 10))
+    
     player_car.draw(WINDOW)
     computer_car.draw(WINDOW)
     
@@ -197,7 +216,7 @@ def move_player(player_car):
     if not moved:
         player_car.reduce_speed()
         
-def handle_collision(player_car, computer_car):
+def handle_collision(player_car, computer_car, game_info):
     if player_car.collide(TRACK_BORDER_MASK) != None:
         player_car.bounce()
     
@@ -205,29 +224,44 @@ def handle_collision(player_car, computer_car):
     computer_finish_line_intersection_point = computer_car.collide(FINISH_LINE_MASK, *FINISH_POSITION)
     
     if computer_finish_line_intersection_point != None:
-        print("Computer Wins!")
+        text_center(WINDOW, MAIN_FONT, "You Lost!")
+        pygame.display.update()
+        pygame.time.wait(5000) # A little pause
+        game_info.reset()
         player_car.reset()
         computer_car.reset()
+        
     
     if player_finish_line_intersection_point != None:
         if player_finish_line_intersection_point[1] == 0:
             player_car.bounce()
         else:
+            game_info.next_level()
             player_car.reset()
-            computer_car.reset()
-            print("Finish")
+            computer_car.next_level(game_info.level)
 
 run = True
 clock = pygame.time.Clock()
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0, 0))]
 
 player_car = PlayerCar(4, 4)
-computer_car = ComputerCar(1, 4, COMPUTER_PATH)
+computer_car = ComputerCar(5, 4, COMPUTER_PATH)
+game_info = GameInfo()
 
 while run:
     clock.tick(FPS)
     
-    draw(WINDOW, images, player_car, computer_car)
+    draw(WINDOW, images, player_car, computer_car, game_info)
+    
+    while not game_info.started:
+        text_center(WINDOW, MAIN_FONT, f"Press any key to start Level {game_info.level}!")
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                break
+            if event.type == pygame.KEYDOWN:
+                game_info.start_level()
     
     pygame.display.update()
     
@@ -239,7 +273,14 @@ while run:
     move_player(player_car)
     computer_car.move()
     
-    handle_collision(player_car, computer_car)
+    handle_collision(player_car, computer_car, game_info)
+    if game_info.game_over():
+        text_center(WINDOW, MAIN_FONT, "You Win!")
+        pygame.display.update()
+        pygame.time.wait(5000) # A little pause
+        game_info.reset()
+        player_car.reset()
+        computer_car.reset()
     
 pygame.quit()
         
